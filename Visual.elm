@@ -2,7 +2,7 @@
 import GraphicSVG exposing (..)
 import Array
 import String
---import Data
+import Data
 
 type alias BarData = (Int,String)
 type alias Bounds =  
@@ -56,6 +56,9 @@ makeGraph yMax =
     , bottomLine |> outlined (solid 5) black ]
 
 
+barDataOfJsonData json = 
+  (toFloat json.availableBikes, json.stationName)
+
 makeBars data maxHeight numBars = 
   let barWidth = graphWidth/(toFloat (List.length data))
       toHeight n = ((n/maxHeight)*graphHeight)
@@ -81,7 +84,7 @@ makeBars data maxHeight numBars =
       group <| List.indexedMap makeBar data
 
 graph = 
-  let data = [(1, "bar"), (1, "bar"), (1, "bar"), (1, "bar")]
+  let data = List.map barDataOfJsonData Data.data
       maxHeight = (fst (Maybe.withDefault (0,"") (List.maximum data)))
   in
   group [  makeBars data maxHeight (toFloat (List.length data))
