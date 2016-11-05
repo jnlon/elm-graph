@@ -37,7 +37,7 @@ makeGraph yMax =
       bottomLine = line (b.left,b.bottom) (b.right,b.bottom)
       labelStyle = filled black
       yMakeGrid y = line (b.left,y) (b.right,y) |> outlined (solid 1) grey
-      yMakeLine y = line (b.left,y) (b.right,y) |> outlined (solid 2) black
+      yMakeLine y = line (b.left,y) (b.right,y) |> outlined (solid 1) black
       yLabels = 10 
       formatLabel n = (String.left 3 (toString n))
       yMakeLabel i y = 
@@ -52,8 +52,8 @@ makeGraph yMax =
   group 
     [ group yGrid
     , group yLabelLines
-    , leftLine |> outlined (solid 5) black 
-    , bottomLine |> outlined (solid 5) black ]
+    , leftLine |> outlined (solid 1) black 
+    , bottomLine |> outlined (solid 1) black ]
 
 
 barDataOfJsonData json = 
@@ -73,7 +73,7 @@ makeBars data maxHeight numBars =
             xAxisText = 
               case (i % 2) of
                 1 ->  xLabel |> move (xAxisTextX, b.bottom-20) |> rotate (degrees 40)
-                o -> xLabel |> move (xAxisTextX, barHeight)  |> rotate (degrees 90)
+                o -> xLabel |> move (xAxisTextX+(barWidth*2), b.top/2)  |> rotate (degrees 90)
         in
         group 
           [ rect barWidth barHeight
@@ -86,6 +86,7 @@ makeBars data maxHeight numBars =
 
 graph = 
   let data = List.map barDataOfJsonData Data.data
+  --let data = [(5,"test1"), (10,"test2")] 
       maxHeight = (fst (Maybe.withDefault (0,"") (List.maximum data)))
   in
   group [  makeBars data maxHeight (toFloat (List.length data))
