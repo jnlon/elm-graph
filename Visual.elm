@@ -1,6 +1,7 @@
 --import Html exposing (..)
 import GraphicSVG exposing (..)
 import Array
+import String
 --import Data
 
 type alias BarData = (Int,String)
@@ -25,7 +26,7 @@ getBarColour ith =
     Array.get (ith % Array.length colours ) <| colours
 
 -- boundaries
-b = {left = -450.0, right = 450.0, top = 250.0, bottom = -250.0}
+b = {left = -450.0, right = 450.0, top = 250.0, bottom = -190.0}
 graphHeight = (abs b.bottom) + b.top
 graphWidth =  (abs b.left) + b.right
 smallText t = filled black <| size 9 t 
@@ -38,10 +39,11 @@ makeGraph yMax =
       yMakeGrid y = line (b.left,y) (b.right,y) |> outlined (solid 1) grey
       yMakeLine y = line (b.left,y) (b.right,y) |> outlined (solid 2) black
       yLabels = 10 
+      formatLabel n = (String.left 3 (toString n))
       yMakeLabel i y = 
         group 
           [ yMakeLine y
-          , text (toString ((toFloat i)*(yMax/yLabels))) |> smallText |> move ((b.left-35),(y+1))]
+          , text (formatLabel ((toFloat i)*(yMax/yLabels))) |> smallText |> move ((b.left-25),y)]
       yLabelLines =  
         List.indexedMap yMakeLabel (range b.bottom b.top (graphHeight/yLabels))
       yGrid = 
@@ -55,24 +57,35 @@ makeGraph yMax =
 
 
 makeBars data maxHeight numBars = 
-  let 
-      barWidth = graphWidth/(toFloat (List.length data))
-      toHeight n = (n/maxHeight)*graphHeight
-      -- I DON't KNOW HOW THIS WORKS
-      toXPosition i = ((i/numBars)*graphWidth) + (b.left + barWidth/2)
+  let barWidth = graphWidth/(toFloat (List.length data))
+      toHeight n = ((n/maxHeight)*graphHeight)
+      toXPosition i =  -- I DON't KNOW HOW THIS WORKS
+        ((i/numBars)*graphWidth) + (b.left + barWidth/2)
       makeBar i d = 
-        rect barWidth (toHeight (fst d))
-          |> filled (getBarColour i) 
-          |> move ((toXPosition (toFloat i)), b.bottom) 
-  in
+        let barHeight = (toHeight (fst d))
+            barXPosition = toXPosition (toFloat i)
+            xLabel = text (snd d) |> filled black 
+            barSizeLabel = text (String.left 5 (toString (fst d))) |> filled black
+            xAxisTextX = barXPosition-10
+            xAxisTextPosition = if (i % 2) == 0 
+            then (xAxisTextX, b.bottom-20) 
+            else (xAxisTextX, b.bottom-45)
+        in
+        group 
+          [ rect barWidth barHeight
+              |> filled (getBarColour i) 
+              |> move (barXPosition, (b.bottom+(barHeight/2))) 
+          , xLabel |> move xAxisTextPosition
+          , barSizeLabel |> move xAxisTextPosition |> move (8,-12)]
+      in
       group <| List.indexedMap makeBar data
 
 graph = 
-  let data = [(10, "test"), (2, "two"), (5, "two")]
+  let data = [(1, "bar"), (1, "bar"), (1, "bar"), (1, "bar")]
       maxHeight = (fst (Maybe.withDefault (0,"") (List.maximum data)))
   in
   group [  makeBars data maxHeight (toFloat (List.length data))
-         , makeGraph 10 ]
+         , makeGraph maxHeight ]
 
 --main = Html.text (toString (range 10 30 2)) 
 main = graphicsApp { view = collage 1000 500 [graph] }
