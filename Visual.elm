@@ -3,6 +3,7 @@ import GraphicSVG exposing (..)
 import Array
 import String
 import Data
+import Time
 
 type alias BarData = (Int,String)
 type alias Bounds =  
@@ -26,7 +27,7 @@ getBarColour ith =
     Array.get (ith % Array.length colours ) <| colours
 
 -- boundaries
-b = {left = -450.0, right = 450.0, top = 250.0, bottom = -120.0}
+b = {left = -450.0, right = 450.0, top = 230.0, bottom = -120.0}
 graphHeight = (abs b.bottom) + b.top
 graphWidth =  (abs b.left) + b.right
 smallText t = filled black <| size 9 t 
@@ -38,7 +39,7 @@ makeGraph yMax =
       labelStyle = filled black
       yMakeGrid y = line (b.left,y) (b.right,y) |> outlined (solid 1) grey
       yMakeLine y = line (b.left,y) (b.right,y) |> outlined (solid 1) black
-      yLabels = 10 
+      yLabels = 5 
       formatLabel n = (String.left 3 (toString n))
       yMakeLabel i y = 
         group 
@@ -84,13 +85,29 @@ makeBars data maxHeight numBars =
       in
       group <| List.indexedMap makeBar data
 
-graph = 
+graph t = 
   let data = List.map barDataOfJsonData Data.data
   --let data = [(5,"test1"), (10,"test2")] 
       maxHeight = (fst (Maybe.withDefault (0,"") (List.maximum data)))
   in
-  group [  makeBars data maxHeight (toFloat (List.length data))
+  group [  text "Number of Available Bikes at Toronto Rideshare Stations" |> size 20 |> fixedwidth |> filled black |> move (-330,b.top+5)
+         , makeBars data maxHeight (toFloat (List.length data))
          , makeGraph maxHeight ]
 
---main = Html.text (toString (range 10 30 2)) 
-main = graphicsApp { view = collage 1000 500 [graph] }
+
+-- main = graphicsApp { view = view, model = { t = 0 }, update = update }
+
+type Message = Tick Float GetKeyState
+
+main =
+  gameApp Tick
+    { model = { t = 0 }
+    , view = view
+    , update = update }
+
+update message model =
+  case message of
+    Tick tick _ ->
+      { model | t = tick }
+
+view model = collage 1000 500 [graph model.t] 
